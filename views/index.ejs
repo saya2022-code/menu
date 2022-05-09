@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>LIST APP</title>
+    <link rel="stylesheet" href="/css/style.css">
+  </head>
+  <body>
+    <header>
+      <!-- href属性を追加してください -->
+      <a class="header-logo"  href="/">LIST APP</a>
+    </header>
+    <div class="container">
+      <div class="container-header">
+        <h1>買い物リスト</h1>
+      </div>
+      <div class="index-table-wrapper">
+        <div class="table-head">
+          <span class="id-column">ID</span>
+          <span>買うもの</span>
+        </div>
+        <!-- 配列itemsを定義してください -->
+        <% const items = [
+          {id: 1, name: 'じゃがいも'},
+          {id: 2, name: 'にんじん'},
+          {id: 3, name: 'たまねぎ'}
+        ];%>
+        
+        <ul class="table-body">
+
+          <!-- forEachを用いてitemsの要素を出力してください -->
+         <% items.forEach((item) =>{%>
+          <li>
+              <span class="id-column">
+                <!-- itemのidプロパティの値を表示してください -->
+                <%= item.id%>
+                
+              </span>
+              <span class="name-column">
+                <!-- itemのnameプロパティの値を表示してください -->
+                <%= item.name%>
+                
+              </span>
+            </li>
+           <% });%>
+           
+        </ul>
+        
+      </div>
+    </div>
+  </body>
+</html>
