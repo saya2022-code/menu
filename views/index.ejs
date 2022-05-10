@@ -21,11 +21,19 @@
         </div>
 
         <ul class="table-body">
+            <!-- app.jsのitems(変数)を取得し、itemsの一部を示すitemを指定、それを繰り返す -->
             <% items.forEach((item) => { %>
-              <li>
+             <li>
                 <div class="item-data">
                   <span class="id-column"><%= item.id %></span>
                   <span class="name-column"><%= item.name %></span>
+                </div>
+
+                <div class="item-menu">
+                    <!-- ②消したいルートパラメータ(item.id)を取得 -->
+                    <form action="/delete/<%=item.id%>" method="post">
+                      <input type="submit" value="削除">
+                    </form>
                 </div>
               </li>
             <% }) %>

@@ -24,31 +24,47 @@ app.get('/', (req, res) => {
     res.render('top.ejs');
   });
 
+//一覧表示
   app.get('/index', (req, res) => {
     connection.query(
-      'SELECT * FROM items',
-      (error, results) => {
-        res.render('index.ejs', {items: results});
+      'SELECT * FROM items', //テーブルのデータを取得
+      (error, results) => { //resultsにテーブルのデータが入る
+        res.render('index.ejs', {items: results}); //items(変数)にresultsを代入
       }
     );
   });
   
+  //作成画面
   app.get('/new', (req, res) => {
     res.render('new.ejs');
   });
 
+  //作成画面の送信＝postなので/createへの画面遷移しない
   app.post('/create', (req, res) => {
     connection.query(
       'INSERT INTO items (name) VALUES (?)',
-      [req.body.itemName],
+      [req.body.itemName], //new.ejsのname="itemName"より
       (error, results) => {
 
-        // 一覧画面にリダイレクトしてください
+        // 一覧画面にリダイレクト＝重複を防ぐ
         res.redirect('/index');
 
       }
     );
   });
 
+  //削除
+  app.post('/delete/:id',(req,res) => { //①ルートパラメータ(:id)を設定
+    //③req.params.ルートパラメータ名＝②から取得したメモのidを受け取る
+    // console.log(req.params.id);
+
+    connection.query( //DB接続
+      'DELETE FROM items where id =?', //④指定したidを持つ列を消す処理
+      [req.params.id], //⑤ ②から取得したメモのidが?に入る
+      (error, results) => { //クエリ実行後の処理
+        res.redirect('/index');
+      }
+    );
+  })
 // サーバーを起動するコードを貼り付けてください
 app.listen(3000);
