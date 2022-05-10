@@ -7,6 +7,9 @@ const app = express();
 
 // CSSや画像ファイルを置くフォルダを指定
 app.use(express.static('public'));
+// フォームから送信された値を受け取れるようにしてください
+app.use(express.urlencoded({extended: false}));
+
 
 // 定数connectionを定義して接続情報の書かれたコードを代入してください
 const connection = mysql.createConnection({
@@ -21,17 +24,31 @@ app.get('/', (req, res) => {
     res.render('top.ejs');
   });
 
-//一覧ページ
-app.get('/index', (req, res) => {
-  // データベースからデータを取得する処理を書いてください
-  connection.query(
-    'select * from items',
-    (error,results) => {
-      // console.log(results);
-      // res.renderの第２引数にオブジェクトを追加してください
-      res.render('index.ejs',{items:results});
-    });
-});
+  app.get('/index', (req, res) => {
+    connection.query(
+      'SELECT * FROM items',
+      (error, results) => {
+        res.render('index.ejs', {items: results});
+      }
+    );
+  });
+  
+  app.get('/new', (req, res) => {
+    res.render('new.ejs');
+  });
+
+  app.post('/create', (req, res) => {
+    connection.query(
+      'INSERT INTO items (name) VALUES (?)',
+      [req.body.itemName],
+      (error, results) => {
+
+        // 一覧画面にリダイレクトしてください
+        res.redirect('/index');
+
+      }
+    );
+  });
 
 // サーバーを起動するコードを貼り付けてください
 app.listen(3000);
