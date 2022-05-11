@@ -1,22 +1,48 @@
 // expressを使うためのコード
 const express = require('express');
-// MySQLを使うためのコードを貼り付けてください
+// MySQLを使うためのコードを貼り付ける
 const mysql = require('mysql');
+// express-sessionを読み込む
+const session = require('express-session');
 
 const app = express();
 
 // CSSや画像ファイルを置くフォルダを指定
 app.use(express.static('public'));
-// フォームから送信された値を受け取れるようにしてください
+// フォームから送信された値を受け取る
 app.use(express.urlencoded({extended: false}));
 
 
-// 定数connectionを定義して接続情報の書かれたコードを代入してください
+// 定数connectionに接続情報を代入
 const connection = mysql.createConnection({
   host: '',
   user: 'todo2',
   password: '!pass100',
   database: 'list_app'
+});
+
+// express-session(セッション情報)を使うための初期設定
+app.use(
+  session({
+    secret: 'my_secret_key',
+    resave: false,
+    saveUninitialized: false,
+  })
+)
+
+//常に「セッション情報の一致」を確認するapp.useを作成
+app.use((req,res,next) => {
+    // セッション情報のuserIdとundefinedを比較するif文を追加してください
+    if(req.session.userId === undefined){
+      res.locals.username = "ゲスト";
+      res.locals.isLoggedIn = false; //ログイン状態を判別する変数→header.ejsで使用
+      console.log("ログインしていません");
+    }else{
+      res.locals.username = req.session.username;
+      res.locals.isLoggedIn = true;  //ログイン状態を判別する変数→header.ejsで使用
+      console.log("ログインしています");
+    }
+    next();
 });
 
 //トップ画面
@@ -36,13 +62,14 @@ app.get('/', (req, res) => {
       'SELECT * FROM users WHERE email = ?',
       [email],
       (error, results) => {
-        console.log(email);
         // 配列resultsの要素数で処理の分岐をしてください
         //if文で「フォームから受け取った送信されたパスワード」と「クエリ実行結果のパスワード」を比較
         if(results.length > 0){
           if(req.body.password === results[0].password){
           //認証する
-          console.log("認証に成功しました");
+          req.session.userId = results[0].id; //resultsからidを取得し、セッション情報にuserIdというプロパティ名で保存
+          req.session.username = results[0].username; //resultsからnameを取得し、セッション情報にuserNameというプロパティ名で保存
+
           res.redirect('/index');
           }else{
             //失敗
@@ -56,8 +83,17 @@ app.get('/', (req, res) => {
     )
   });
 
+    //ログアウト=セッション情報を削除する
+    app.get('/logout', (req, res) => {
+      req.session.destroy((error) => {
+        res.redirect('/');
+      });
+    });
+
   //一覧表示
   app.get('/index', (req, res) => {
+
+    //全リストの表示
     connection.query(
       'SELECT * FROM items', //テーブルのデータを取得
       (error, results) => { //resultsにテーブルのデータが入る

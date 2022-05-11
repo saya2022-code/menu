@@ -283,6 +283,10 @@ header {
   margin-top: 56px;
 }
 
+.login-list{
+  display: flex;
+  text-align: center;
+}
 .container-header {
   display: flex;
   justify-content: space-between;
