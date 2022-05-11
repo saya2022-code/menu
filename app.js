@@ -4,6 +4,8 @@ const express = require('express');
 const mysql = require('mysql');
 // express-sessionを読み込む
 const session = require('express-session');
+// bcrypt(パスワードのハッシュ化)を使うためのコード
+const bcrypt = require('bcrypt');
 
 const app = express();
 
@@ -63,25 +65,49 @@ app.get('/', (req, res) => {
       'SELECT * FROM users WHERE email = ?',
       [email],
       (error, results) => {
-        // 配列resultsの要素数で処理の分岐をしてください
-        //if文で「フォームから受け取った送信されたパスワード」と「クエリ実行結果のパスワード」を比較
-        if(results.length > 0){
-          if(req.body.password === results[0].password){
-          //認証する
-          req.session.userId = results[0].id; //resultsからidを取得し、セッション情報にuserIdというプロパティ名で保存
-          req.session.username = results[0].username; //resultsからnameを取得し、セッション情報にuserNameというプロパティ名で保存
+        if (results.length > 0) { //emailが一致→パスワードの認証処理へ
+        
+        // ログイン時に入力したパスワードをplainに代入
+        const plain = req.body.password;
+        // ハッシュ化したパスワードをhashに代入
+        const hash = results[0].password;
 
-          res.redirect('/index');
+        // パスワードを比較するためのcompareメソッドを追加
+         //compare(比較対象1,比較対象2,(エラー取得,比較の結果))
+        bcrypt.compare(plain,hash,(error,isEqual) => {
+          //第3引数に指定したアロー関数の中で、比較結果の値が一致するかif文で確認
+          if(isEqual){ //isEqualがtrue（パスワードが一致）
+            req.session.userId = results[0].id; //resultsからidを取得し、セッション情報にuserIdというプロパティ名で保存
+            req.session.username = results[0].username; //resultsからnameを取得し、セッション情報にuserNameというプロパティ名で保存  
+
+            res.redirect('/index');
           }else{
             //失敗
             console.log("認証に失敗しました");
             res.redirect('/login');
           }
-       }else{
-         res.redirect('/login');
-       }
+        });
+        
+        // 配列resultsの要素数で処理の分岐をしてください
+        //if文で「フォームから受け取った送信されたパスワード」と「クエリ実行結果のパスワード」を比較
+      //   if(results.length > 0){
+      //     if(req.body.password === results[0].password){
+      //     //認証する
+      //     req.session.userId = results[0].id; //resultsからidを取得し、セッション情報にuserIdというプロパティ名で保存
+      //     req.session.username = results[0].username; //resultsからnameを取得し、セッション情報にuserNameというプロパティ名で保存
+
+      //     res.redirect('/index');
+      //     }else{
+      //       //失敗
+      //       console.log("認証に失敗しました");
+      //       res.redirect('/login');
+      //     }
+      //  }
+      }else{
+        res.redirect('/login');
       }
-    )
+     }
+    );
   });
 
     //ログアウト=セッション情報を削除する
@@ -138,7 +164,7 @@ app.get('/', (req, res) => {
       //再度、エラー文を表示する空の配列を用意
         const errors = [];
 
-      //ログイン処理(68行〜)と同様
+      //ログイン処理(61行〜)と同様
       connection.query(
         'SELECT * FROM users WHERE email = ?',
         [email],
@@ -156,28 +182,28 @@ app.get('/', (req, res) => {
         );
      },
     //ここから③
-    (req,res) => { //最後の処理なので、next関数はいらない
-      //②新規登録の処理
-      console.log("新規登録");
-
-    //登録フォームから送信された値を受け取る変数を用意3(username,email,password)
+    (req, res) => {
+      console.log('ユーザー登録');
       const username = req.body.username;
       const email = req.body.email;
       const password = req.body.password;
-
-    connection.query(
-      'INSERT INTO users (username,email,password) VALUES (?,?,?)',
-      [username,email,password], //変数
-      (error, results) => {
-        //セッション情報に加え、ログイン認証する
-        req.session.userId = results.insertId; //idカラムのみ、自動でresultsオブジェクトのinsertIdというプロパティに入る
-        req.session.username = username; //残りはフォーム送信された値を入れる(値はusernameという変数に代入されている)
-
-        // 一覧画面にリダイレクト＝重複を防ぐ
-        res.redirect('/index');
-      }
-    );
-  });
+      // hashメソッドを用いて、ユーザー登録時のパスワードをハッシュ化してください
+      bcrypt.hash(password,10,(error,hash) => {
+        
+       // 第２引数に指定しているpasswordをhashに変更してください
+      connection.query(
+        'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
+        [username, email, hash],
+        (error, results) => {
+          console.log(email); //resultsではundefinedになる。hashは取れた
+          req.session.userId = results.insertId; //resultsが取得できず、エラーになる。
+          req.session.username = username;
+          res.redirect('/index');
+        }
+      );
+     });
+    }
+  );
 
   //一覧表示
   app.get('/index', (req, res) => {
