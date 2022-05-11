@@ -66,5 +66,34 @@ app.get('/', (req, res) => {
       }
     );
   })
+
+  //１件取得
+  app.get('/edit/:id',(req,res) => { //①ルートパラメータ(:id)を設定
+    //③req.params.ルートパラメータ名＝②から取得したメモのidを受け取る
+    // console.log(req.params.id);
+
+    connection.query( //DB接続
+      'SELECT * FROM items where id =?', //④指定したidを持つ列を消す処理
+      [req.params.id], //⑤ ②から取得したメモのidが?に入る
+      (error, results) => { //クエリ実行後の処理
+        res.render('edit.ejs',{item: results[0]});
+      }
+    );
+  })
+
+  //更新
+  app.post('/update/:id',(req,res) => { //①ルートパラメータ(:id)を設定
+    //③req.params.ルートパラメータ名＝②から取得したメモのidを受け取る
+    // console.log(req.params.id);
+
+    connection.query( //DB接続
+      'UPDATE items SET name=? where id=?', //④指定したidを持つ列を消す処理
+      [req.body.itemName,req.params.id], //⑤ ②から取得したメモのidが?に入る
+      (error, results) => { //クエリ実行後の処理
+        res.redirect('/index');
+      }
+    );
+    });
+
 // サーバーを起動するコードを貼り付けてください
 app.listen(3000);
