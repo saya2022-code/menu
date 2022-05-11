@@ -194,6 +194,7 @@ input {
   align-items: center;
   margin: 0 auto;
   padding: 60px;
+  padding-bottom: 30px;
 }
 
 .top-detail {
@@ -245,18 +246,18 @@ input {
 }
 
 .top-image {
-  width: 64%;
+  /* width: 64%; */
   text-align: center;
   overflow: hidden;
 }
 
 .top-image img {
-  width: 88%;
+  width: 30%;
 }
 
 /* header ================================ */
 header {
-  height: 56px;
+  height: 80px;
   background-color: #ffffff;
   border-bottom: 1px solid #f0f4f9;
 }
@@ -282,6 +283,7 @@ header {
   margin: 0 auto;
   margin-top: 56px;
 }
+
 
 .login-list{
   display: flex;
