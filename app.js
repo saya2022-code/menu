@@ -97,7 +97,7 @@ app.get('/', (req, res) => {
     });
 
     //新規登録の送信＝postなので画面遷移しない
-      //この機能は2つのミドルウェア関数(①、②)を持つ
+      //この機能は2つのミドルウェア関数(①、②、③)を持つ　~168行まで
     app.post('/signup', (req, res, next) => {
       //①フォームの入力をチェックする処理(バリデーション)＝next関数を追加
       console.log('入力値の空チェック');
@@ -129,12 +129,38 @@ app.get('/', (req, res) => {
        }else{ //エラーなし
       next(); //②へ進む
       }
-    }, //ここまでが①
-    (req,res) => { 
+    },
+    //ここから②
+    (req, res, next) => {
+      //登録フォームから送信された値を受け取る変数を用意2(email)
+        const email = req.body.email; //重複はemailの値のみで判断する
+      
+      //再度、エラー文を表示する空の配列を用意
+        const errors = [];
+
+      //ログイン処理(68行〜)と同様
+      connection.query(
+        'SELECT * FROM users WHERE email = ?',
+        [email],
+        (error, results) => {
+          // 配列resultsの要素数で処理の分岐をしてください
+          if(results.length > 0){ //重複がある
+            errors.push("メールアドレスが重複しています");
+            res.render('signup.ejs',{errors: errors}); //登録画面に戻り、signup.ejsにエラー文の入った配列errorsを渡す→signup.ejsへ
+
+            }else{
+              console.log("重複なし");
+              next(); //③へ
+            }
+          }
+        );
+     },
+    //ここから③
+    (req,res) => { //最後の処理なので、next関数はいらない
       //②新規登録の処理
       console.log("新規登録");
 
-    //再度、登録フォームから送信された値を受け取る変数を用意(username,email,password)
+    //登録フォームから送信された値を受け取る変数を用意3(username,email,password)
       const username = req.body.username;
       const email = req.body.email;
       const password = req.body.password;
